@@ -17,7 +17,7 @@ def init_spark():
         .master('local[*]') \
         .appName('HelloWorld') \
         .config("spark.executor.memory", "8g") \
-        .config("spark.driver.memory", "2g") \
+        .config("spark.driver.memory", "4g") \
         .config("spark.local.dir", "./tmp") \
         .getOrCreate()
     sc = spark.sparkContext
@@ -30,41 +30,86 @@ def main():
     # dummy_switch = '_dummy'
 
     projects_path = f'Libraries.io-open-data-1.4.0/libraries/projects{dummy_switch}.csv'
-    dependencies_path = f'Libraries.io-open-data-1.4.0/libraries/dependencies_dummy.csv'
+    dependencies_path = f'Libraries.io-open-data-1.4.0/libraries/dependencies{dummy_switch}.csv'
     pwrf_path = f'Libraries.io-open-data-1.4.0/libraries/projects_with_repository_fields{dummy_switch}.csv'
     timestamp_format = 'YYYY-MM-DD HH:mm:ss z'
     # pwrf = spark.read.csv(pwrf_path, header=True, timestampFormat=timestamp_format, schema=schemas.projects_with_repository_fields)
 
-    projects = spark.read.csv(projects_path, header=True, timestampFormat=timestamp_format,
-                              schema=schemas.projects)
-    get_top_ten_projects_for_languages(projects, spark)
-    exit(0)
-    dependencies = spark.read.csv(dependencies_path, header=True, schema=schemas.dependencies, samplingRatio=0.1).drop(
-        'ID')
-    join_result = projects \
-        .join(dependencies, projects['ID'] == dependencies['Project ID'])
+    # projects = spark.read.csv(projects_path, header=True, timestampFormat=timestamp_format,
+    #                           schema=schemas.projects)
+    # get_top_ten_projects_for_languages(projects, spark)
+        dependencies = spark.read.csv(dependencies_path, header=True, schema=schemas.dependencies).drop('ID').select('Project ID', 'Dependency Project ID')
+        # dependencies = dependencies.limit(dependencies.count() // 10)
+        dependency_pairs = dependencies.where(F.col('Dependency Project ID').isNotNull())
+        pageranks = dependency_pairs \
+            .select('Project ID') \
+            .union(dependency_pairs
+                   .select('Dependency Project ID')) \
+            .distinct().alias('ID') \
+            .withColumn('pagerank', F.lit(1))
+        dependency_counts = dependency_pairs.groupBy('Project ID').count()
+        # print(pageranks.count(), pageranks.take(5))
+        for it in range(2):
+            print(f'It {it}')
+            dependency_pairs = pageranks \
+                .join(dependency_pairs, 'Project ID') \
+                .join(dependency_counts, 'Project ID') \
+                .withColumn('vote', F.col('pagerank') / F.col('count'))\
+                .drop('pagerank', 'count')
+            vote_sums = dependency_pairs\
+                .groupBy('Dependency Project ID')\
+                .sum('vote')\
+                .withColumnRenamed('sum(vote)', 'vote_sum')
+            # print(vote_sums.take(5))
+            pageranks = pageranks\
+                .join(vote_sums, pageranks['Project ID'] == vote_sums['Dependency Project ID'], how='left')\
+                .drop('pagerank')\
+                .drop('Dependency Project ID')\
+                .withColumn('pagerank', 1 + F.col('vote_sum'))\
+                .drop('vote_sum') \
+                .fillna({'pagerank': 1})
+            pageranks.show(10)
+    with(open('results/pageranks.txt', 'w+')) as f:
+        f.write(pageranks.collect())
+        # exit(0)
+        # pageranks = pageranks('pagerank', dependency_pairs.groupBy('Project ID').sum('vote'))
+
+    # join_result = projects \
+    #     .join(dependencies, projects['ID'] == dependencies['Project ID'])
     # .limit(5)
-    print(join_result.take(5))
-    count_result = join_result.groupBy('Repository ID').count()
-    count_result.show()
+    # print(join_result.take(5))
+    # count_result = join_result.groupBy('Repository ID').count()
+    # count_result.show()
     # print(count_result.where(projects['Repository ID']==5074).first())
     # print(projects.where(projects['ID']==5074).first())
-    projects.join(count_result, projects['ID'] == count_result['Repository ID']).orderBy(
-        'Latest Release Publish Timestamp', ascending=False).show()
+    # projects.join(count_result, projects['ID'] == count_result['Repository ID']).orderBy(
+    #     'Latest Release Publish Timestamp', ascending=False).show()
 
 
 def get_top_ten_projects_for_languages(projects, spark):
     languages_df = spark.createDataFrame(languages, projects.schema['Language'].dataType)
-    projects_with_languages = projects.join(languages_df, projects['Language'] == languages_df['value'])
-    # projects_with_languages.select('Language').distinct().show()
-    window = Window.partitionBy('Language').orderBy(projects_with_languages['Dependent Repositories Count'].desc())
-    agg_lang = projects_with_languages.withColumn('sorted_list', F.collect_list('Name').over(window))\
-        .groupBy('Language').agg(F.max('sorted_list')).alias('sorted_list')
-    # agg_lang.show()
-    top_projects_by_language = [(row['Language'], row['max(sorted_list)'][:10]) for row in agg_lang.collect()]
+
+    top_projects_by_language = projects.select('Language', 'Name', 'Dependent Repositories Count') \
+        .join(languages_df, languages_df['value'] == projects['Language']) \
+        .orderBy(F.desc('Dependent Repositories Count')) \
+        .groupBy('Language') \
+        .agg(F.collect_list('Name')) \
+        .rdd.map(list) \
+        .map(lambda x: (x[0], x[1][:10])) \
+        .collect()
     print(top_projects_by_language)
     with open('results/top_projects_by_language.txt', 'w+') as f:
         f.write(''.join([f'{str(p[0])}: {", ".join([l for l in p[1]])}\n' for p in top_projects_by_language]))
+
+
+def most_used_tags(projects):
+    split_col = projects\
+        .withColumn('Keyword', F.explode(F.split(projects["Keywords"], ",")))\
+        .drop('Keywords').groupBy('Keyword')\
+        .count()\
+        .orderBy(F.desc('count'))\
+        .take(10)
+    print(split_col)
 
 
 if __name__ == '__main__':

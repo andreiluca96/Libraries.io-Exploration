@@ -1,2 +1,15 @@
-Python: Django, Flask, Jinja2, MarkupSafe, gunicorn, coverage, mock, itsdangerous, click, matplotlib
+C#: Newtonsoft.Json, EntityFramework, Microsoft.AspNet.Mvc, Microsoft.AspNet.Razor, Antlr, Microsoft.Net.Compilers, Microsoft.Owin, Owin, NUnit, Microsoft.Owin.Host.SystemWeb
+JavaScript: express, lodash, debug, body-parser, async, babel-core, ansi-regex, ansi-styles, chalk, balanced-match
+C++: nan, node-sass, bser, fb-watchman, therubyracer, unf_ext, bcrypt, uws, electron, facter
+Julia: Compat, Distributions, DataFrames, DataStructures, JSON, StatsBase, BinDeps, Reexport, PyCall, Colors
+C: ffi, fsevents, rb-fsevent, binding_of_caller, bcrypt, nio4r, numpy, bcrypt-ruby, psycopg2, redcarpet
+Objective-C: AFNetworking, SDWebImage, expo, MBProgressHUD, Masonry, cordova-plugin-splashscreen, babel-preset-expo, SVProgressHUD, Bolts, MJRefresh
+Swift: Alamofire, SwiftyJSON, ReactiveCocoa, RxSwift, SnapKit, Kingfisher, RxCocoa, ObjectMapper, Nimble, Quick/Nimble
+TypeScript: esprima, typescript, path-to-regexp, @types/node, rxjs, @angular/common, @angular/core, @angular/compiler, @angular/platform-browser, @angular/platform-browser-dynamic
 R: testthat, dplyr, stringr, httr, reshape2, tidyr, covr, lubridate, purrr, readr
+Scala: org.scala-lang:scala-library, org.scala-lang:scala-compiler, io.gatling.highcharts:gatling-charts-highcharts, org.scala-lang:scala-reflect, s3_website, org.spark-project.spark:unused, org.scala-lang:scalap, com.twitter:chill-java, org.scala-lang:scala-actors, prisma
+PHP: phpunit/phpunit, psr/log, monolog/monolog, symfony/console, doctrine/inflector, laravel/framework, swiftmailer/swiftmailer, symfony/event-dispatcher, mockery/mockery, symfony/finder
+Ruby: rake, activesupport, i18n, rails, rack, activerecord, builder, rack-test, multi_json, activemodel
+Python: requests, Django, Flask, six, node-gyp, Jinja2, MarkupSafe, Werkzeug, gunicorn, pytest
+CoffeeScript: coffee-script-source, turbolinks, error-ex, esutils, is-arrayish, performance-now, ipaddr.js, dom-converter, coffee-script, pretty-error
+Java: json, thread_safe, nokogiri, junit:junit, mysql:mysql-connector-java, org.slf4j:slf4j-api, org.springframework.boot:spring-boot-starter-web, org.springframework.boot:spring-boot-starter-test, org.springframework:spring-webmvc, log4j:log4j
