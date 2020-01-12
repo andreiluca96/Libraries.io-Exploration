@@ -1,0 +1,2 @@
+Python: Django, Flask, Jinja2, MarkupSafe, gunicorn, coverage, mock, itsdangerous, click, matplotlib
+R: testthat, dplyr, stringr, httr, reshape2, tidyr, covr, lubridate, purrr, readr
