@@ -6,7 +6,6 @@ import pyspark.sql.functions as F
 
 import schemas
 
-findspark.init()
 languages = ['Java', 'Python', 'R', 'C#', 'Objective-C', 'C', 'C++', 'Swift', 'Scala', 'Ruby', 'Julia', 'PHP',
              'JavaScript', 'bash', 'TypeScript', 'CoffeeScript']
 
